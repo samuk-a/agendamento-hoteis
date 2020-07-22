@@ -26,20 +26,20 @@ class HotelModel(banco.Model):
         }
 
     @classmethod
-    def find_hotel(cls, hotel_id):
+    def find(cls, hotel_id):
         hotel = cls.query.filter_by(id=hotel_id).first()
         return hotel or None
 
-    def save_hotel(self):
+    def save(self):
         banco.session.add(self)
         banco.session.commit()
 
-    def update_hotel(self, nome, estrelas, diaria, cidade):
+    def update(self, nome, estrelas, diaria, cidade):
         self.nome = nome
         self.estrelas = estrelas
         self.diaria = diaria
         self.cidade = cidade
 
-    def delete_hotel(self):
+    def delete(self):
         banco.session.delete(self)
         banco.session.commit()
