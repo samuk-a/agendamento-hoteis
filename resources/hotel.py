@@ -46,45 +46,52 @@ hoteis = [
 ]
 class Hoteis(Resource):
     def get(self):
-        return {'hoteis':hoteis}
+        return {'hoteis': [hotel.json() for hotel in HotelModel.query.all()]}
 
 class Hotel(Resource):
     argumentos = reqparse.RequestParser()
-    argumentos.add_argument('nome')
-    argumentos.add_argument('estrelas')
+    argumentos.add_argument('nome', type=str, required=True, help="The field 'nome' cannot be left blank")
+    argumentos.add_argument('estrelas', type=float, required=True, help="The field 'estrelas' cannot be left blank")
     argumentos.add_argument('diaria')
     argumentos.add_argument('cidade')
 
-    @staticmethod
-    def find_hotel(hotel_id):
-        for hotel in hoteis:
-            if hotel['id'] == hotel_id:
-                return hotel
-        return None
-
     def get(self, hotel_id):
-        hotel = Hotel.find_hotel(hotel_id)
+        hotel = HotelModel.find_hotel(hotel_id)
         if hotel:
-            return hotel
-        return {'message': 'Hotel not found'}, 404
+            return hotel.json()
+        return {'message': 'Hotel not found.'}, 404
 
     def post(self, hotel_id):
+        if HotelModel.find_hotel(hotel_id):
+            return {"message":"Id '{}' already exists.".format(hotel_id)}, 400
         dados = Hotel.argumentos.parse_args()
-        novo_hotel = HotelModel(hotel_id, **dados).json()
-        hoteis.append(novo_hotel)
-        return novo_hotel, 200
+        hotel = HotelModel(hotel_id, **dados)
+        try:
+            hotel.save_hotel()
+        except:
+            return {'message':'An internal error occurred trying to save hotel.'}, 500
+        return hotel.json(), 200
 
     def put(self, hotel_id):
         dados = Hotel.argumentos.parse_args()
-        novo_hotel = HotelModel(hotel_id, **dados).json()
-        hotel = Hotel.find_hotel(hotel_id)
-        if hotel:
-            hotel.update(novo_hotel)
-            return novo_hotel, 200
-        hoteis.append(novo_hotel)
-        return novo_hotel, 201
+        hotel_encontrado = HotelModel.find_hotel(hotel_id)
+        if hotel_encontrado:
+            hotel_encontrado.update_hotel(**dados)
+            hotel_encontrado.save_hotel()
+            return hotel_encontrado.json(), 200
+        hotel = HotelModel(hotel_id, **dados)
+        try:
+            hotel.save_hotel()
+        except:
+            return {'message':'An internal error occurred trying to save hotel.'}, 500
+        return hotel.json(), 201
 
     def delete(self, hotel_id):
-        global hoteis
-        hoteis = [hotel for hotel in hoteis if hotel_id != hotel['id']]
-        return {'message': 'Hotel deleted'}
+        hotel = HotelModel.find_hotel(hotel_id)
+        if hotel:
+            try:
+                hotel.delete_hotel()
+            except:
+                return {'message':'An internal error occurred trying to delete hotel.'}, 500
+            return {'message': 'Hotel deleted.'}, 200
+        return {'message': 'Hotel not found.'}, 404
