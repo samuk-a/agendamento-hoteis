@@ -2,12 +2,13 @@ from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from resources.hotel import Hoteis, Hotel
-from resources.usuario import User, UserRegister, UserLogin, UserLogout
+from resources.usuario import User, UserRegister, UserLogin, UserLogout, UserConfirm
 from resources.site import Site, Sites
 from blacklist import BLACKLIST
+from env import MYSQL_USER, MYSQL_PASS, MYSQL_HOST, MYSQL_DB
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///banco.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{}:{}@{}/{}'.format(MYSQL_USER, MYSQL_PASS, MYSQL_HOST, MYSQL_DB)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'DontTellAnyone'
 app.config['JWT_BLACKLIST_ENABLED'] = True
@@ -34,6 +35,7 @@ api.add_resource(UserLogin, '/login')
 api.add_resource(UserLogout, '/logout')
 api.add_resource(Sites, '/sites')
 api.add_resource(Site, '/sites/<string:url>')
+api.add_resource(UserConfirm, '/confirmacao/<int:user_id>')
 
 if (__name__ == '__main__'):
     from sql_alchemy import banco
