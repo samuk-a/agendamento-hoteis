@@ -14,11 +14,11 @@ def normalize_path_params(cidade=None, estrelas_min=0, estrelas_max=5, diaria_mi
         'limit': limit,
         'offset': offset}
 consulta_sem_cidade = "SELECT * FROM hoteis WHERE \
-(estrelas >= ? AND estrelas <= ?) AND \
-(diaria >= ? AND diaria <= ?) \
-LIMIT ? OFFSET ?"
+(estrelas >= %s AND estrelas <= %s) AND \
+(diaria >= %s AND diaria <= %s) \
+LIMIT %s OFFSET %s"
 consulta_com_cidade = "SELECT * FROM hoteis WHERE \
-(cidade = ?) AND \
-(estrelas >= ? AND estrelas <= ?) AND \
-(diaria >= ? AND diaria <= ?) \
-LIMIT ? OFFSET ?"
+(cidade = %s) AND \
+(estrelas >= %s AND estrelas <= %s) AND \
+(diaria >= %s AND diaria <= %s) \
+LIMIT %s OFFSET %s"

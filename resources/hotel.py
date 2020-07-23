@@ -3,7 +3,8 @@ from flask_jwt_extended import jwt_required
 from models.hotel import HotelModel
 from models.site import SiteModel
 from resources.filtros import *
-import sqlite3
+import mysql.connector
+from env import MYSQL_USER, MYSQL_PASS, MYSQL_HOST, MYSQL_DB
 
 path_params = reqparse.RequestParser()
 path_params.add_argument('cidade', type=str)
@@ -16,7 +17,7 @@ path_params.add_argument('offset', type=int)
 
 class Hoteis(Resource):
     def get(self):
-        connection = sqlite3.connect('banco.db')
+        connection = mysql.connector.connect(user=MYSQL_USER, password=MYSQL_PASS, host=MYSQL_HOST, database=MYSQL_DB)
         cursor = connection.cursor()
 
         dados = path_params.parse_args()
@@ -28,17 +29,19 @@ class Hoteis(Resource):
         else:
             consulta = consulta_com_cidade
         tupla = tuple([parametros[chave] for chave in parametros])
-        resultado = cursor.execute(consulta, tupla)
+        cursor.execute(consulta, tupla)
+        resultado = cursor.fetchall()
         hoteis = []
-        for linha in resultado:
-            hoteis.append({
-                'id': linha[0],
-                'nome': linha[1],
-                'estrelas': linha[2],
-                'diaria': linha[3],
-                'cidade': linha[4],
-                'site_id': linha[5]
-            })
+        if resultado:
+            for linha in resultado:
+                hoteis.append({
+                    'id': linha[0],
+                    'nome': linha[1],
+                    'estrelas': linha[2],
+                    'diaria': linha[3],
+                    'cidade': linha[4],
+                    'site_id': linha[5]
+                })
         return {'hoteis': hoteis}
 
 class Hotel(Resource):
